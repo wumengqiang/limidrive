@@ -22,8 +22,7 @@ def getTokenView(request):
 
 @csrf_exempt
 def callbackView(request):  # 七牛新建或者修改文件的回调
-    
-    a = common.new_or_modify_file(request)
+    a = common.new_or_modify_file(request.POST['key'],request.POST['fname'],int(request.POST['fsize']))
     if a == False:
         a = '文件名或者路径名不合法'
         data = {'success':False,"name":request.POST['fname']}
@@ -35,27 +34,30 @@ def callbackView(request):  # 七牛新建或者修改文件的回调
 
 def newDirView(request):
     a = 'ok'
-    if common.new_dir(request) == False:
+    if common.new_dir(request.user.username,request.POST['path'],request.POST['filename']) == False:
         a = '路径名已存在或者路径名不合法'
     return render(request,'fileapi/test.html',{'content':a})
     
 def moveFileView(request):
-    result = common.move_file(request, request.POST['path'], request.POST['filename'], request.POST['newpath'], request.POST['newfilename'])
+    result = common.move_file(request.user.username, request.POST['path'], request.POST['filename'], request.POST['newpath'], request.POST['newfilename'])
     if result == False:
-        a = "文件名或者文件夹名不存在 或者 文件名或者路径名不合法"
+        a = "文件名或者路径名不正确"
     else:
         a = "ok"
     return render(request,'fileapi/test.html',{'content':a})
 
 def listFileView(request):
-    a = common.list_file(request,request.POST['path'])
+    a = common.list_file(request.user.username,request.POST['path'])
     return render(request,'fileapi/test.html',{'content':a})
 
 def removeFileView(request):
-    result = common.remove_file(request,request.POST['path'],request.POST['filename'])
+    result = common.remove_file(request.user.username,request.POST['path'],request.POST['filename'])
     if result == False :
         result = "文件名或者文件夹名不存在 或者 文件名或者路径名不合法"
     else:
         reuslt = "ok"
     return render(request,'fileapi/test.html',{'content':result})
 
+def getFileDetailView(request):
+    result = common.get_file_detail(request.user.username,request.POST['path'],request.POST['filename'])
+    return render(request,'fileapi/test.html',{'content':result})

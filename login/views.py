@@ -31,11 +31,12 @@ def registerView(request):
 def loginView(request):
     if request.user.is_authenticated():
 
-        return render(request,'fileapi/uploadfile.html')
-        return render(request,'fileapi/gettoken.html')
-        return render(request,'fileapi/newfile.html')
-       # return render(request,'fileapi/listfile.html')
-      #  return render(request,'fileapi/removefile.html')
+        return render(request,'fileapi/getfiledetail.html')
+        #return render(request,'fileapi/uploadfile.html')
+        #return render(request,'fileapi/gettoken.html')
+        #return render(request,'fileapi/newfile.html')
+        return render(request,'fileapi/listfile.html')
+        return render(request,'fileapi/removefile.html')
         return render(request,'fileapi/movefile.html')
         return render(request,'fileapi/newdir.html')
         return render(request,'fileapi/newfile.html')
@@ -52,6 +53,7 @@ def loginView(request):
         user = authenticate(username=uname, password=passwd)
         if user is not None:
             login(request,user)
+            return render(request,'fileapi/getfiledetail.html')
             return render(request,'fileapi/uploadfile.html')
             return render(request,'fileapi/gettoken.html')
             return render(request,'fileapi/newfile.html')

@@ -9,4 +9,5 @@ urlpatterns = [
     url(r'^moveFile', views.moveFileView),
     url(r'^listFile', views.listFileView),
     url(r'^removeFile', views.removeFileView),
+    url(r'^getFileDetail', views.getFileDetailView),
 ]
