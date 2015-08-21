@@ -14,6 +14,6 @@ class FileInfo(models.Model):
     file_path = models.CharField(max_length=300)
     file_type = models.CharField(max_length=20)
     size = models.IntegerField()
-    last_modify = models.DateField(auto_now=True)
-    add_time = models.DateField(auto_now_add=True)
+    last_modify = models.DateTimeField(auto_now=True)
+    add_time = models.DateTimeField(auto_now_add=True)
      

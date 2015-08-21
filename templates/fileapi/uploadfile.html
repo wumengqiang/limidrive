@@ -1,0 +1,11 @@
+{%  extends 'login/base.html' %}
+{% block main %}
+<form method="post" action="http://upload.qiniu.com/"
+    enctype="multipart/form-data">
+    {% csrf_token %}
+    <input name="key"  value="<resource_key>">
+    <input name="token"  value="<upload_token>">
+    <input name="file" type="file" />
+    <button type='submit' >submit</button>
+</form>
+{% endblock %}

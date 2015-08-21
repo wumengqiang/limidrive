@@ -31,7 +31,7 @@ QINIU_ACCESS_KEY = 'vlisdiaBqmeeNNxq8wr6G0j774h2lU-kwLn-9lWF'
 QINIU_SECRET_KEY = 'JBgiqTA6pfBAtEuJUIOvcAZLDSQq1CkmrXCiqs8n'
 QINIU_BUCKET_NAME = 'limidrive'
 QINIU_DOMAIN = 'http://7xl7mt.com1.z0.glb.clouddn.com/'
-QINIU_UPLOAD_CALLBACK_URL = ""
+QINIU_UPLOAD_CALLBACK_URL = "http://wmq.limijiaoyin.com/fileapi/callback"
 # Application definition
 
 INSTALLED_APPS = (
@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'fileapi',
+    'login',
 )
 
 MIDDLEWARE_CLASSES = (
