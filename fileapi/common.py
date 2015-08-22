@@ -86,7 +86,7 @@ def move_file(username,path,filename,newpath,newfilename,bucket=None):  # bucket
             return False
 
         file1 = FileInfo.objects.filter(owner=user,file_name=filename,file_path=path)
-        filecheck = FileInfo.objects.filter(owner=user,file_name=newfilename,file_path=newpath)
+        filecheck = FileInfo.objects.filter(owner=user,file_path=newpath)  # filepath 可以不存在
         if bool(file1) and bool(filecheck):
             update_dir_size(username,path,0-file1[0].size)
             update_dir_size(username,newpath,file1[0].size)
@@ -144,6 +144,8 @@ def remove_file(username,path,filename,bucket=None):  # 删除文件 删除目�
             return False
         file1 =FileInfo.objects.filter(owner=user,file_name=filename,file_path=path)
         if bool(file1):
+            print "i'm in'"
+            print username,path,-file1[0].size
             update_dir_size(username,path,-file1[0].size)
     file1 =FileInfo.objects.filter(owner=user,file_name=filename,file_path=path)
     if bool(file1):
@@ -227,7 +229,7 @@ def check_str(str1,ispath=False):
 def update_dir_size(username,path,size): # / 路径不需要计算大小
     if path == "/":
         return True
-    if not check_str(path,ispath=True) or not isinstance(size,int) or not check_str(username):
+    if not check_str(path,ispath=True) or not isinstance(size,(int,long)) or not check_str(username):
         return False
     user = User.objects.filter(username=username)
     if bool(user):
