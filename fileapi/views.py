@@ -44,6 +44,7 @@ def moveFileView(request):
         a = "文件名或者路径名不正确"
     else:
         a = "ok"
+
     return render(request,'fileapi/test.html',{'content':a})
 
 def listFileView(request):

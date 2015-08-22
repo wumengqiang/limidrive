@@ -26,20 +26,25 @@ def get_private_url(username, path,filename):
     base_url = ''.join([settings.QINIU_DOMAIN,username, path, '/', filename])
     return q.private_download_url(base_url, expires=3600)
 
-def new_or_modify_file(key,fname,fsize):  # ok 七牛回调url view
-    if not check_str(key,ispath=True) or not check_str(fname):
+def new_or_modify_file(key,fname,fsize):  # ok 上传文件后七牛回调url view
+    if not check_str(key,ispath=True) or not check_str(fname) or not isinstance(fsize,int):
         return False
     username = re.match(r"([^/])+", key, re.UNICODE)
-    if username == None or username.group(0) == "":
+    if username == None or username.group(0) == "":  # key的格式不正确
         return False
     username = username.group(0)
     path = key[len(username):-len(fname)-1]  # 去除username和file_name
     if path == "":
         path = '/'
     # print ' '.join([key,str(fsize),path,fname,username])
-    user = User.objects.filter(username = username)[0]
+    user = User.objects.filter(username = username)
+    if bool(user):
+        user = user[0]
+    else :
+        return False
     files = FileInfo.objects.filter(owner=user,file_path=path,file_name=fname)
     if bool(files):
+        update_dir_size(username,path,fsize-files[0].size)  # 更新文件夹大小
         files[0].size = fsize
         files[0].save()
         return True
@@ -50,6 +55,8 @@ def new_or_modify_file(key,fname,fsize):  # ok 七牛回调url view
         filetype = filetype.group(1)
     file1 = FileInfo(owner=user, add_by=user, file_name=fname, file_path=path, file_type=filetype, size=fsize)
     file1.save()
+    print username,path,fsize
+    update_dir_size(username,path,fsize)
     return True
 
 def new_dir(username,path,filename):  #  ok 从浏览器发来的request
@@ -77,7 +84,14 @@ def move_file(username,path,filename,newpath,newfilename,bucket=None):  # bucket
         bucket = BucketManager(q)
         if  not check_str(filename) or not check_str(path,ispath=True) or  not check_str(newfilename) or not check_str(newpath,ispath=True):
             return False
-            
+
+        file1 = FileInfo.objects.filter(owner=user,file_name=filename,file_path=path)
+        filecheck = FileInfo.objects.filter(owner=user,file_name=newfilename,file_path=newpath)
+        if bool(file1) and bool(filecheck):
+            update_dir_size(username,path,0-file1[0].size)
+            update_dir_size(username,newpath,file1[0].size)
+        else:
+            return False
     # 数据库操作
     file1 = FileInfo.objects.filter(owner=user,file_name=filename,file_path=path)
     if bool(file1):
@@ -128,6 +142,9 @@ def remove_file(username,path,filename,bucket=None):  # 删除文件 删除目�
         bucket = BucketManager(q)
         if  not check_str(filename) or not check_str(path,ispath=True):
             return False
+        file1 =FileInfo.objects.filter(owner=user,file_name=filename,file_path=path)
+        if bool(file1):
+            update_dir_size(username,path,-file1[0].size)
     file1 =FileInfo.objects.filter(owner=user,file_name=filename,file_path=path)
     if bool(file1):
         file1 = file1[0]
@@ -169,7 +186,7 @@ def list_file(username, path): # ok
     else :
         return False
     q = Auth(settings.QINIU_ACCESS_KEY, settings.QINIU_SECRET_KEY)  # 授权
-    files = FileInfo.objects.filter(owner=user,file_path=path)
+    files = FileInfo.objects.filter(owner=user,file_path=path)  #
     filelist = {}
     for f in files:
         if f.file_type == 'dir':  # 文件夹不需要下载 ，但可以设置另外的子目录获取的url，待定
@@ -207,4 +224,30 @@ def check_str(str1,ispath=False):
         return True
     return False
 
-
+def update_dir_size(username,path,size): # / 路径不需要计算大小
+    if path == "/":
+        return True
+    if not check_str(path,ispath=True) or not isinstance(size,int) or not check_str(username):
+        return False
+    user = User.objects.filter(username=username)
+    if bool(user):
+        user = user[0]
+    else:
+        return False
+    filename = re.search(r"""/([^/]+)$""",path,re.UNICODE)
+    if filename is None or filename.group(1) == "":
+        return False
+    filename = filename.group(1)
+    path = path[:-len(filename)-1]
+    if path == "":
+        path ='/'
+    print filename,path
+    file1 =FileInfo.objects.filter(owner=user,file_path=path,file_name=filename)  # 该路径必须存在
+    assert bool(file1) and file1[0].file_type == 'dir',"in updateDirInfo:路径错误或者路径不为文件夹"
+    file1 = file1[0]
+    file1.size += size
+    file1.save()
+    if path != "/":
+        update_dir_size(username,path,size)
+    return True
+    
